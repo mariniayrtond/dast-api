@@ -27,7 +27,6 @@ func RenderHierarchy(h *model.Hierarchy) hierarchyResponse {
 		Name:         h.Name,
 		Description:  h.Description,
 		Owner:        h.Owner,
-		Objective:    h.Objective,
 		Alternatives: h.Alternatives,
 		Criteria: []struct {
 			Level  int    `json:"level"`
