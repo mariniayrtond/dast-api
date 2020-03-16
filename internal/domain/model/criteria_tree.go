@@ -97,17 +97,20 @@ func (root *CriteriaRoot) SetScores(j *CriteriaJudgements) error {
 func (root *CriteriaRoot) setGlobalCriteria(nodes []*CriteriaNode) {
 	for _, node := range nodes {
 		node.GlobalScore = node.LocalScore
-		setGlobalCriteriaForSubCriteria(node.SubCriteria)
-	}
-}
-
-func setGlobalCriteriaForSubCriteria(nodes []*CriteriaNode) {
-	for _, node := range nodes {
 		if node.SubCriteria != nil && len(node.SubCriteria) > 0 {
 			for _, subNode := range node.SubCriteria {
 				subNode.GlobalScore = subNode.LocalScore * node.GlobalScore
-				setGlobalCriteriaForSubCriteria(subNode.SubCriteria)
+				setGlobalCriteriaForSubCriteria(subNode)
 			}
+		}
+	}
+}
+
+func setGlobalCriteriaForSubCriteria(node *CriteriaNode) {
+	if node.SubCriteria != nil && len(node.SubCriteria) > 0 {
+		for _, subNode := range node.SubCriteria {
+			subNode.GlobalScore = subNode.LocalScore * node.GlobalScore
+			setGlobalCriteriaForSubCriteria(subNode)
 		}
 	}
 }
