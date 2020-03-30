@@ -58,5 +58,5 @@ func (hac hierarchyAdminController) Get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, presenter.RenderHierarchy(res))
+	c.JSON(http.StatusOK, presenter.RenderHierarchy(res))
 }

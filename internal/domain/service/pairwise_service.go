@@ -1,6 +1,10 @@
 package service
 
-import "dast-api/internal/domain/model"
+import (
+	"dast-api/internal/domain/model"
+	"dast-api/pkg/slice"
+	"errors"
+)
 
 type PairwiseService struct{}
 
@@ -86,6 +90,46 @@ func generateAlternativeMatrixByTree(res *[]model.MatrixContext, caller *model.C
 	for _, criterion := range caller.SubCriteria {
 		generateAlternativeMatrixByTree(res, criterion, alternatives)
 	}
+}
 
+func (s PairwiseService) CheckCriteriaOrder(saved *model.CriteriaJudgements, candidate *model.CriteriaJudgements) error {
+	if candidate.AlternativeComparison != nil && len(candidate.AlternativeComparison) > 0 {
+		if len(candidate.AlternativeComparison) != len(saved.AlternativeComparison) {
+			return errors.New("you have to fill all alternative matrix before save judgements")
+		}
+		for i := range saved.AlternativeComparison {
+			if saved.AlternativeComparison[i].ComparedTo != candidate.AlternativeComparison[i].ComparedTo {
+				return errors.New("alternative comparison must be in order for ensure quality results")
+			}
 
+			for _, element := range saved.AlternativeComparison[i].Elements {
+				if !slice.StringContains(element, candidate.AlternativeComparison[i].Elements) {
+					return errors.New("alternatives matrix are not well compared")
+				}
+			}
+		}
+	}
+
+	if candidate.CriteriaComparison != nil && len(candidate.CriteriaComparison) > 0 {
+		if len(candidate.CriteriaComparison) != len(saved.CriteriaComparison) {
+			return errors.New("you have to fill all criteria matrix before save judgements")
+		}
+		for i := range saved.CriteriaComparison {
+			if saved.CriteriaComparison[i].Level != candidate.CriteriaComparison[i].Level {
+				return errors.New("criteria matrix levels must be in order for ensure quality results")
+			}
+
+			if saved.CriteriaComparison[i].MatrixContext.ComparedTo != candidate.CriteriaComparison[i].MatrixContext.ComparedTo {
+				return errors.New("criteria comparison must be in order for ensure quality results")
+			}
+
+			for _, element := range saved.CriteriaComparison[i].MatrixContext.Elements {
+				if !slice.StringContains(element, candidate.CriteriaComparison[i].MatrixContext.Elements) {
+					return errors.New("criteria matrix are not well compared")
+				}
+			}
+		}
+	}
+
+	return nil
 }
