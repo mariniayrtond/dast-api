@@ -15,10 +15,10 @@ import (
 type criteriaRequest []criteria
 
 type criteria struct {
-	Level    int    `json:"level"`
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	ParentID string `json:"parent_id"`
+	ID          string `json:"id"`
+	Level       int    `json:"level"`
+	Description string `json:"description"`
+	ParentID    string `json:"parent_id"`
 }
 
 func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
@@ -31,20 +31,32 @@ func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
 		return errors.New("criteria cannot be empty")
 	}
 
+	if len(body) == 1 {
+		return errors.New("criteria must be two or more")
+	}
+
 	for i, c := range body {
-		if c.Name == "" {
+		if c.Description == "" {
 			return errors.New(fmt.Sprintf("criteria on index:%d. name must be != zero value", i+1))
 		}
 		if c.ID == "" {
-			return errors.New(fmt.Sprintf("criteria on index:%d. id must be != zero value", i+1))
+			return errors.New(fmt.Sprintf("criteria on index:%d. name must be != zero value", i+1))
+		}
+		if c.Level < 0 {
+			return errors.New(fmt.Sprintf("criteria on index:%d. level must be > 0", i+1))
+		}
+		if c.ParentID == "" && c.Level > 0 {
+			return errors.New(fmt.Sprintf("criteria on index:%d has level > 0 but parent empty", i+1))
 		}
 	}
 
 	for i, c := range body {
-		n := c.Name
 		for k := i+1; k<len(body); k++ {
-			if strings.ToUpper(n) == strings.ToUpper(body[k].Name) {
-				return fmt.Errorf("%s is duplicated", n)
+			if strings.ToUpper(c.Description) == strings.ToUpper(body[k].Description) {
+				return fmt.Errorf("%s is duplicated", c.Description)
+			}
+			if strings.TrimSpace(strings.ToUpper(c.ID)) == strings.TrimSpace(strings.ToUpper(body[k].ID)) {
+				return fmt.Errorf("%s is duplicated", c.ID)
 			}
 		}
 	}
@@ -59,7 +71,7 @@ func (m criteriaRequest) ToCriteriaModel() []model.Criteria {
 		ret = append(ret, model.Criteria{
 			Level:  c.Level,
 			ID:     c.ID,
-			Name:   c.Name,
+			Name:   c.Description,
 			Parent: c.ParentID,
 			Score:  model.Score{
 				Local:  0,

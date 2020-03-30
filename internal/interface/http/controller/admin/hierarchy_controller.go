@@ -3,6 +3,7 @@ package admin
 import (
 	"dast-api/internal/interface/http/presenter"
 	"dast-api/internal/usecase"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -29,6 +30,12 @@ func (hac hierarchyAdminController) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_hierarchy_request", err))
 		return
 	}
+
+	if len(input.Alternatives) < 2 {
+		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_alternatives", errors.New("the size of alternatives must be > 1")))
+		return
+	}
+
 	res, err := hac.useCase.RegisterHierarchy(input.Name, input.Description, input.Owner, input.Alternatives, input.Objective)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_saving_hierarchy", err))
@@ -51,5 +58,5 @@ func (hac hierarchyAdminController) Get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, presenter.RenderHierarchy(res))
+	c.JSON(http.StatusOK, presenter.RenderHierarchy(res))
 }
