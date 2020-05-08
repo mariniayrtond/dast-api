@@ -5,19 +5,19 @@ import (
 	"sync"
 )
 
-func NewHierarchyRepository() *hierarchyRepository {
-	return &hierarchyRepository{
+func NewHierarchyRepository() *HierarchyRepository {
+	return &HierarchyRepository{
 		mu:      &sync.Mutex{},
 		durable: map[string]*model.Hierarchy{},
 	}
 }
 
-type hierarchyRepository struct {
+type HierarchyRepository struct {
 	mu      *sync.Mutex
 	durable map[string]*model.Hierarchy
 }
 
-func (hr hierarchyRepository) Save(hierarchy *model.Hierarchy) error {
+func (hr HierarchyRepository) Save(hierarchy *model.Hierarchy) error {
 	hr.mu.Lock()
 	defer hr.mu.Unlock()
 
@@ -25,7 +25,7 @@ func (hr hierarchyRepository) Save(hierarchy *model.Hierarchy) error {
 	return nil
 }
 
-func (hr hierarchyRepository) Get(id string) (*model.Hierarchy, error) {
+func (hr HierarchyRepository) Get(id string) (*model.Hierarchy, error) {
 	hr.mu.Lock()
 	defer hr.mu.Unlock()
 

@@ -31,12 +31,19 @@ func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
 		return errors.New("criteria cannot be empty")
 	}
 
+	if len(body) == 1 {
+		return errors.New("criteria must be two or more")
+	}
+
 	for i, c := range body {
 		if c.Name == "" {
 			return errors.New(fmt.Sprintf("criteria on index:%d. name must be != zero value", i+1))
 		}
 		if c.ID == "" {
 			return errors.New(fmt.Sprintf("criteria on index:%d. id must be != zero value", i+1))
+		}
+		if c.Level < 0 {
+			return errors.New(fmt.Sprintf("criteria on index:%d. level must be > 0", i+1))
 		}
 	}
 

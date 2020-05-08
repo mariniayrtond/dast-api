@@ -4,9 +4,8 @@ import (
 	"dast-api/internal/domain/model"
 	"dast-api/internal/domain/repository"
 	"dast-api/internal/domain/service"
+	"dast-api/pkg/uid"
 	"fmt"
-	"github.com/google/uuid"
-	"strings"
 )
 
 type HierarchyCRUD interface {
@@ -28,12 +27,12 @@ type hierarchyCRUDImpl struct {
 }
 
 func (hCRUD hierarchyCRUDImpl) RegisterHierarchy(name string, description string, owner string, alternatives []string, objective string) (*model.Hierarchy, error) {
-	uid, err := uuid.NewRandom()
+	id, err := uid.GenerateUUID()
 	if err != nil {
 		return nil, err
 	}
 
-	h := model.NewHierarchy(strings.ReplaceAll(uid.String(), "-", ""), name, description, owner, alternatives, objective)
+	h := model.NewHierarchy(id, name, description, owner, alternatives)
 	errInsert := hCRUD.repo.Save(h)
 
 	return h, errInsert

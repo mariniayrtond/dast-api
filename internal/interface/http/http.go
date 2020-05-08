@@ -9,4 +9,5 @@ import (
 
 func Apply(server *gin.Engine, ctn *app.Container) {
 	controller.RegisterAdminControllers(server, ctn.Resolve("hierarchy-usecase").(usecase.HierarchyCRUD))
+	controller.RegisterPairwiseControllers(server, ctn.Resolve("pwise-usecase").(usecase.PairwiseComparison))
 }
