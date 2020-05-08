@@ -2,36 +2,36 @@ package presenter
 
 import "dast-api/internal/domain/model"
 
-type criteriaJudgements struct {
+type CriteriaJudgements struct {
 	ID                    string               `json:"id"`
 	HierarchyID           string               `json:"hierarchy_id"`
-	CriteriaComparison    []pairwiseComparison `json:"criteria_comparison"`
-	AlternativeComparison []matrixContext      `json:"alternative_comparison"`
-	Results               map[string]float64   `json:"results"`
+	CriteriaComparison    []PairwiseComparison `json:"criteria_comparison"`
+	AlternativeComparison []MatrixContext      `json:"alternative_comparison"`
+	Results               map[string]float64   `json:"results,omitempty"`
 }
 
-type pairwiseComparison struct {
+type PairwiseComparison struct {
 	Level         int           `json:"level"`
-	MatrixContext matrixContext `json:"matrix_context"`
+	MatrixContext MatrixContext `json:"matrix_context"`
 }
 
-type matrixContext struct {
+type MatrixContext struct {
 	ComparedTo string      `json:"compared_to"`
 	Elements   []string    `json:"elements"`
 	Judgements [][]float64 `json:"judgements"`
 }
 
-func RenderCriteriaJudgements(j *model.CriteriaJudgements) criteriaJudgements {
-	ret := criteriaJudgements{
+func RenderCriteriaJudgements(j *model.CriteriaJudgements) CriteriaJudgements {
+	ret := CriteriaJudgements{
 		ID:                 j.ID,
 		HierarchyID:        j.HierarchyID,
-		CriteriaComparison: []pairwiseComparison{},
+		CriteriaComparison: []PairwiseComparison{},
 	}
 
 	for _, comparison := range j.CriteriaComparison {
-		ret.CriteriaComparison = append(ret.CriteriaComparison, pairwiseComparison{
+		ret.CriteriaComparison = append(ret.CriteriaComparison, PairwiseComparison{
 			Level: comparison.Level,
-			MatrixContext: matrixContext{
+			MatrixContext: MatrixContext{
 				ComparedTo: comparison.MatrixContext.ComparedTo,
 				Elements:   comparison.MatrixContext.Elements,
 				Judgements: comparison.MatrixContext.Judgements,
@@ -40,7 +40,7 @@ func RenderCriteriaJudgements(j *model.CriteriaJudgements) criteriaJudgements {
 	}
 
 	for _, alternativeC := range j.AlternativeComparison {
-		ret.AlternativeComparison = append(ret.AlternativeComparison, matrixContext{
+		ret.AlternativeComparison = append(ret.AlternativeComparison, MatrixContext{
 			ComparedTo: alternativeC.ComparedTo,
 			Elements:   alternativeC.Elements,
 			Judgements: alternativeC.Judgements,
