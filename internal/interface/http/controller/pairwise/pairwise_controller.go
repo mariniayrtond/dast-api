@@ -68,7 +68,18 @@ func (p pairwiseController) GenerateCriteriaMatrices(c *gin.Context) {
 	c.JSON(http.StatusCreated, presenter.RenderCriteriaJudgements(judgements))
 }
 
-func (p pairwiseController) SetCriteria(c *gin.Context) {
+func (p pairwiseController) GetJudgements(c *gin.Context) {
+
+	j, err := p.useCase.GetJudgements(c.Param("id"), c.Param("judgements_id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_getting_judgements", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.RenderCriteriaJudgements(j))
+}
+
+func (p pairwiseController) SetJudgements(c *gin.Context) {
 	var input judgementsRequest
 	if err := c.BindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_judgements", err))

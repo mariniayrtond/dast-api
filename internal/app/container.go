@@ -32,6 +32,10 @@ func NewContainer() (*Container, error) {
 			Name:  "pwise-usecase",
 			Build: buildPairwiseUsecase,
 		},
+		{
+			Name:  "user-usecase",
+			Build: buildUserUsecase,
+		},
 	}...); err != nil {
 		return nil, err
 	}
@@ -57,4 +61,8 @@ func buildHierarchyUsecase(ctn di.Container) (interface{}, error) {
 func buildPairwiseUsecase(ctn di.Container) (interface{}, error) {
 	service := service.NewPairwiseService()
 	return usecase.NewPairwiseComparisonUC(hRepo, pRepo, service), nil
+}
+
+func buildUserUsecase(ctn di.Container) (interface{}, error) {
+	return usecase.NewUserUseCase(memory.NewUserRepository(), memory.NewTokenRepository()), nil
 }

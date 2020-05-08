@@ -14,8 +14,8 @@ type HierarchyCRUD interface {
 	SetCriteria(id string, input []model.Criteria) (*model.Hierarchy, error)
 }
 
-func NewHierarchyCRUD(repo repository.HierarchyRepository, service *service.CriteriaService) *hierarchyCRUDImpl {
-	return &hierarchyCRUDImpl{
+func NewHierarchyCRUD(repo repository.HierarchyRepository, service *service.CriteriaService) HierarchyCRUD {
+	return hierarchyCRUDImpl{
 		repo:    repo,
 		service: service,
 	}
