@@ -12,18 +12,36 @@ type HierarchyCRUD interface {
 	RegisterHierarchy(string, string, string, []string, string) (*model.Hierarchy, error)
 	GetHierarchy(id string) (*model.Hierarchy, error)
 	SetCriteria(id string, input []model.Criteria) (*model.Hierarchy, error)
+	SaveCriteriaTemplate(owner string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error)
+	SearchPublicTemplates() ([]*model.CriteriaTemplate, error)
 }
 
-func NewHierarchyCRUD(repo repository.HierarchyRepository, service *service.CriteriaService) HierarchyCRUD {
+func NewHierarchyCRUD(repo repository.HierarchyRepository, templatesRepo repository.TemplateRepository, service *service.CriteriaService) HierarchyCRUD {
 	return hierarchyCRUDImpl{
-		repo:    repo,
-		service: service,
+		repo:          repo,
+		templatesRepo: templatesRepo,
+		service:       service,
 	}
 }
 
 type hierarchyCRUDImpl struct {
-	repo    repository.HierarchyRepository
-	service *service.CriteriaService
+	repo          repository.HierarchyRepository
+	templatesRepo repository.TemplateRepository
+	service       *service.CriteriaService
+}
+
+func (hCRUD hierarchyCRUDImpl) SaveCriteriaTemplate(owner string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error) {
+	id, err := uid.GenerateUUID()
+	if err != nil {
+		return nil, err
+	}
+	template := model.NewCriteriaTemplate(id, owner, public, criteria)
+	errInsert := hCRUD.templatesRepo.Save(template)
+	return template, errInsert
+}
+
+func (hCRUD hierarchyCRUDImpl) SearchPublicTemplates() ([]*model.CriteriaTemplate, error) {
+	return hCRUD.templatesRepo.SearchPublicTemplates()
 }
 
 func (hCRUD hierarchyCRUDImpl) RegisterHierarchy(name string, description string, owner string, alternatives []string, objective string) (*model.Hierarchy, error) {

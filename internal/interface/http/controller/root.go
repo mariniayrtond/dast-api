@@ -31,6 +31,8 @@ func RegisterAdminControllers(e *gin.Engine, uc usecase.HierarchyCRUD) {
 
 	c := admin.NewCriteriaAdminController(uc)
 	e.PUT("dast/hierarchy/:id/criteria", c.Fill)
+	e.POST("dast/criteria/template", c.SaveTemplate)
+	e.GET("dast/criteria/template/search", c.SearchPublicTemplates)
 }
 
 func RegisterPairwiseControllers(e *gin.Engine, uc usecase.PairwiseComparison) {

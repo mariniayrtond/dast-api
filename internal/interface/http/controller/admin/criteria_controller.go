@@ -21,6 +21,12 @@ type criteria struct {
 	ParentID    string `json:"parent_id"`
 }
 
+type template struct {
+	Owner    string          `json:"owner" binding:"required"`
+	Public   bool            `json:"public" binding:"required"`
+	Criteria criteriaRequest `json:"criteria" binding:"required"`
+}
+
 func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
 	var body []criteria
 	if err := json.Unmarshal(b, &body); err != nil {
@@ -51,7 +57,7 @@ func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
 	}
 
 	for i, c := range body {
-		for k := i+1; k<len(body); k++ {
+		for k := i + 1; k < len(body); k++ {
 			if strings.ToUpper(c.Description) == strings.ToUpper(body[k].Description) {
 				return fmt.Errorf("%s is duplicated", c.Description)
 			}
@@ -73,7 +79,7 @@ func (m criteriaRequest) ToCriteriaModel() []model.Criteria {
 			ID:     c.ID,
 			Name:   c.Description,
 			Parent: c.ParentID,
-			Score:  model.Score{
+			Score: model.Score{
 				Local:  0,
 				Global: 0,
 			},
@@ -104,4 +110,30 @@ func (cac criteriaAdminController) Fill(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, presenter.RenderHierarchy(h))
+}
+
+func (cac criteriaAdminController) SaveTemplate(c *gin.Context) {
+	var input template
+	if err := c.BindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_template", err))
+		return
+	}
+
+	template, err := cac.useCase.SaveCriteriaTemplate(input.Owner, input.Public, input.Criteria.ToCriteriaModel())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_saving_template", err))
+		return
+	}
+
+	c.JSON(http.StatusCreated, presenter.RenderCriteriaTemplate(template))
+}
+
+func (cac criteriaAdminController) SearchPublicTemplates(c *gin.Context) {
+	templates, err := cac.useCase.SearchPublicTemplates()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_searching_templates", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.RenderCriteriaTemplates(templates))
 }
