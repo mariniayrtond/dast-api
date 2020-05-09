@@ -33,3 +33,11 @@ func NewNotFound(resource string) apiError {
 		StatusCode: http.StatusNotFound,
 	}
 }
+
+func NewUnauthorized(resource string) apiError {
+	return apiError{
+		ErrorCode:  "unauthorized",
+		StatusCode: http.StatusUnauthorized,
+		Cause:      fmt.Sprintf("%s is not logged in", resource),
+	}
+}

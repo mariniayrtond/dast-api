@@ -10,12 +10,13 @@ import (
 
 type PairwiseComparison interface {
 	GenerateMatrices(id string) (*model.CriteriaJudgements, error)
+	GetJudgements(idHierarchy string, idJudgements string) (*model.CriteriaJudgements, error)
 	UpdateJudgements(idHierarchy string, idJudgements string, judgements *model.CriteriaJudgements) (*model.CriteriaJudgements, error)
 	GenerateResults(idHierarchy string, idJudgements string) (*model.CriteriaJudgements, error)
 }
 
-func NewPairwiseComparisonUC(hRepo repository.HierarchyRepository, pRepo repository.CriteriaJudgementsRepository, service *service.PairwiseService) *pairwiseComparisonImpl {
-	return &pairwiseComparisonImpl{
+func NewPairwiseComparisonUC(hRepo repository.HierarchyRepository, pRepo repository.CriteriaJudgementsRepository, service *service.PairwiseService) PairwiseComparison {
+	return pairwiseComparisonImpl{
 		hRepo:   hRepo,
 		pRepo:   pRepo,
 		service: service,
@@ -59,6 +60,23 @@ func (p pairwiseComparisonImpl) GenerateResults(idHierarchy string, idJudgements
 
 	if err := j.GenerateResults(&tree, h.Alternatives); err != nil {
 		return nil, err
+	}
+
+	return j, nil
+}
+
+func (p pairwiseComparisonImpl) GetJudgements(idHierarchy string, idJudgments string) (*model.CriteriaJudgements, error) {
+	j, err := p.pRepo.Get(idJudgments)
+	if err != nil {
+		return nil, err
+	}
+
+	if j == nil {
+		return nil, fmt.Errorf("judgements:%s doesnot exists", idJudgments)
+	}
+
+	if j.HierarchyID != idHierarchy {
+		return nil, fmt.Errorf("judgements:%s does not append to hierarcht:%s", idJudgments, idHierarchy)
 	}
 
 	return j, nil

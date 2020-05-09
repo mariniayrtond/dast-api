@@ -13,10 +13,12 @@ type Container struct {
 
 var hRepo *memory.HierarchyRepository
 var pRepo *memory.CriteriaJudgementsRepository
+var tRepo *memory.TemplateRepository
 
 func NewContainer() (*Container, error) {
 	hRepo = memory.NewHierarchyRepository()
 	pRepo = memory.NewCriteriaJudgementsRepository()
+	tRepo = memory.NewTemplateRepository()
 
 	builder, err := di.NewBuilder()
 	if err != nil {
@@ -31,6 +33,10 @@ func NewContainer() (*Container, error) {
 		{
 			Name:  "pwise-usecase",
 			Build: buildPairwiseUsecase,
+		},
+		{
+			Name:  "user-usecase",
+			Build: buildUserUsecase,
 		},
 	}...); err != nil {
 		return nil, err
@@ -51,10 +57,14 @@ func (c *Container) Clean() error {
 
 func buildHierarchyUsecase(ctn di.Container) (interface{}, error) {
 	service := service.NewCriteriaService(hRepo)
-	return usecase.NewHierarchyCRUD(hRepo, service), nil
+	return usecase.NewHierarchyCRUD(hRepo, tRepo, service), nil
 }
 
 func buildPairwiseUsecase(ctn di.Container) (interface{}, error) {
 	service := service.NewPairwiseService()
 	return usecase.NewPairwiseComparisonUC(hRepo, pRepo, service), nil
+}
+
+func buildUserUsecase(ctn di.Container) (interface{}, error) {
+	return usecase.NewUserUseCase(memory.NewUserRepository(), memory.NewTokenRepository()), nil
 }
