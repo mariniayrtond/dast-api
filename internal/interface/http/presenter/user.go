@@ -12,8 +12,9 @@ type User struct {
 }
 
 type LogResponse struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
+	Message  string `json:"message"`
+	Username string `json:"username"`
+	Token    string `json:"token"`
 }
 
 func RenderUser(user *model.User) *User {
@@ -21,5 +22,5 @@ func RenderUser(user *model.User) *User {
 }
 
 func RenderSuccessLogIn(name string, token string) *LogResponse {
-	return &LogResponse{Message: fmt.Sprintf("%s successful logged in", name), Token: token}
+	return &LogResponse{Username: name, Message: fmt.Sprintf("%s successful logged in", name), Token: token}
 }

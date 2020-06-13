@@ -11,14 +11,14 @@ import (
 
 func TestComplexExample(t *testing.T) {
 	assert := assert.New(t)
-	resCreateHierarchy := performRequest("POST", "/hierarchy", `{"name": "testing complex case", "description": "esta es una jerarquía de prueba", "owner": "amarini", "objective": "Elegir auto", "alternatives": ["Ford", "Fiat", "Chevrolet"] }`, controllers)
+	resCreateHierarchy := performRequest("POST", "/hierarchy", `{"name": "testing complex case", "description": "esta es una jerarquía de prueba", "owner": "guest", "objective": "Elegir auto", "alternatives": ["Ford", "Fiat", "Chevrolet"] }`, controllers)
 	assert.Equal(http.StatusCreated, resCreateHierarchy.Code)
 
 	var hierarchyResponse presenter.HierarchyResponse
 	json.Unmarshal(resCreateHierarchy.Body.Bytes(), &hierarchyResponse)
 	assert.NotNil(hierarchyResponse.ID)
 
-	resFillCriteria := performRequest("PUT", fmt.Sprintf("/hierarchy/%s/criteria", hierarchyResponse.ID), `[{"level": 0, "description": "Velocidad", "id": "velocidad"}, {"level": 1, "description": "Velocidad 1", "id": "velocidad_1", "parent_id": "velocidad"}, {"level": 1, "description": "Velocidad 2", "id": "velocidad_2", "parent_id": "velocidad"}, {"level": 0, "description": "Cilindrada", "id": "cilindrada"}, {"level": 0, "description": "Aceleración", "id": "aceleracion"}, {"level": 1, "description": "Aceleracion 1", "id": "aceleracion_1", "parent_id": "aceleracion"}, {"level": 1, "description": "Aceleracion 2", "id": "aceleracion_2", "parent_id": "aceleracion"}, {"level": 2, "description": "Aceleracion 21", "id": "aceleracion_21", "parent_id": "aceleracion_2"}, {"level": 2, "description": "Aceleracion 22", "id": "aceleracion_22", "parent_id": "aceleracion_2"} ]`, controllers)
+	resFillCriteria := performRequest("PUT", fmt.Sprintf("/hierarchy/%s/criteria", hierarchyResponse.ID), `[{"level": 0, "description": "Velocidad", "id": "velocidad"}, {"level": 1, "description": "Velocidad 1", "id": "velocidad_1", "parent": "velocidad"}, {"level": 1, "description": "Velocidad 2", "id": "velocidad_2", "parent": "velocidad"}, {"level": 0, "description": "Cilindrada", "id": "cilindrada"}, {"level": 0, "description": "Aceleración", "id": "aceleracion"}, {"level": 1, "description": "Aceleracion 1", "id": "aceleracion_1", "parent": "aceleracion"}, {"level": 1, "description": "Aceleracion 2", "id": "aceleracion_2", "parent": "aceleracion"}, {"level": 2, "description": "Aceleracion 21", "id": "aceleracion_21", "parent": "aceleracion_2"}, {"level": 2, "description": "Aceleracion 22", "id": "aceleracion_22", "parent": "aceleracion_2"} ]`, controllers)
 	assert.Equal(http.StatusOK, resFillCriteria.Code)
 
 	get := performRequest("GET", fmt.Sprintf("/hierarchy/%s", hierarchyResponse.ID), ``, controllers)
@@ -62,7 +62,7 @@ func TestDisorderComplexExample(t *testing.T) {
 	json.Unmarshal(resCreateHierarchy.Body.Bytes(), &hierarchyResponse)
 	assert.NotNil(hierarchyResponse.ID)
 
-	resFillCriteria := performRequest("PUT", fmt.Sprintf("/hierarchy/%s/criteria", hierarchyResponse.ID), `[{"level": 0, "description": "Velocidad", "id": "velocidad"}, {"level": 1, "description": "Velocidad 1", "id": "velocidad_1", "parent_id": "velocidad"}, {"level": 1, "description": "Velocidad 2", "id": "velocidad_2", "parent_id": "velocidad"}, {"level": 0, "description": "Cilindrada", "id": "cilindrada"}, {"level": 0, "description": "Aceleración", "id": "aceleracion"}, {"level": 1, "description": "Aceleracion 1", "id": "aceleracion_1", "parent_id": "aceleracion"}, {"level": 1, "description": "Aceleracion 2", "id": "aceleracion_2", "parent_id": "aceleracion"}, {"level": 2, "description": "Aceleracion 21", "id": "aceleracion_21", "parent_id": "aceleracion_2"}, {"level": 2, "description": "Aceleracion 22", "id": "aceleracion_22", "parent_id": "aceleracion_2"} ]`, controllers)
+	resFillCriteria := performRequest("PUT", fmt.Sprintf("/hierarchy/%s/criteria", hierarchyResponse.ID), `[{"level": 0, "description": "Velocidad", "id": "velocidad"}, {"level": 1, "description": "Velocidad 1", "id": "velocidad_1", "parent": "velocidad"}, {"level": 1, "description": "Velocidad 2", "id": "velocidad_2", "parent": "velocidad"}, {"level": 0, "description": "Cilindrada", "id": "cilindrada"}, {"level": 0, "description": "Aceleración", "id": "aceleracion"}, {"level": 1, "description": "Aceleracion 1", "id": "aceleracion_1", "parent": "aceleracion"}, {"level": 1, "description": "Aceleracion 2", "id": "aceleracion_2", "parent": "aceleracion"}, {"level": 2, "description": "Aceleracion 21", "id": "aceleracion_21", "parent": "aceleracion_2"}, {"level": 2, "description": "Aceleracion 22", "id": "aceleracion_22", "parent": "aceleracion_2"} ]`, controllers)
 	assert.Equal(http.StatusOK, resFillCriteria.Code)
 
 	get := performRequest("GET", fmt.Sprintf("/hierarchy/%s", hierarchyResponse.ID), ``, controllers)

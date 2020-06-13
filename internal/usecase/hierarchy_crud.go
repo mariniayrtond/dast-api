@@ -12,8 +12,9 @@ type HierarchyCRUD interface {
 	RegisterHierarchy(string, string, string, []string, string) (*model.Hierarchy, error)
 	GetHierarchy(id string) (*model.Hierarchy, error)
 	SetCriteria(id string, input []model.Criteria) (*model.Hierarchy, error)
-	SaveCriteriaTemplate(owner string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error)
+	SaveCriteriaTemplate(owner string, description string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error)
 	SearchPublicTemplates() ([]*model.CriteriaTemplate, error)
+	SearchByUsername(username string) ([]*model.Hierarchy, error)
 }
 
 func NewHierarchyCRUD(repo repository.HierarchyRepository, templatesRepo repository.TemplateRepository, service *service.CriteriaService) HierarchyCRUD {
@@ -30,12 +31,12 @@ type hierarchyCRUDImpl struct {
 	service       *service.CriteriaService
 }
 
-func (hCRUD hierarchyCRUDImpl) SaveCriteriaTemplate(owner string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error) {
+func (hCRUD hierarchyCRUDImpl) SaveCriteriaTemplate(owner string, description string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error) {
 	id, err := uid.GenerateUUID()
 	if err != nil {
 		return nil, err
 	}
-	template := model.NewCriteriaTemplate(id, owner, public, criteria)
+	template := model.NewCriteriaTemplate(id, description, owner, public, criteria)
 	errInsert := hCRUD.templatesRepo.Save(template)
 	return template, errInsert
 }
@@ -72,4 +73,8 @@ func (hCRUD hierarchyCRUDImpl) SetCriteria(id string, input []model.Criteria) (*
 
 	h.Criteria = input
 	return h, hCRUD.repo.Save(h)
+}
+
+func (hCRUD hierarchyCRUDImpl) SearchByUsername(username string) ([]*model.Hierarchy, error) {
+	return hCRUD.repo.SearchByUsername(username)
 }

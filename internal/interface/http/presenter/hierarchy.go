@@ -66,3 +66,12 @@ func RenderHierarchy(h *model.Hierarchy) HierarchyResponse {
 
 	return res
 }
+
+func RenderHierarchies(h []*model.Hierarchy) []HierarchyResponse {
+	toRet := []HierarchyResponse{}
+	for _, hierarchy := range h {
+		toRet = append(toRet, RenderHierarchy(hierarchy))
+	}
+
+	return toRet
+}
