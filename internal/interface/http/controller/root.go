@@ -4,6 +4,7 @@ import (
 	"dast-api/internal/interface/http/controller/admin"
 	"dast-api/internal/interface/http/controller/pairwise"
 	"dast-api/internal/interface/http/controller/user"
+	"dast-api/internal/interface/http/middleware"
 	"dast-api/internal/usecase"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -24,21 +25,22 @@ func RegisterUserControllers(e *gin.Engine, uc usecase.UserUseCase) {
 	e.GET("dast/user/:id", controller.Get)
 }
 
-func RegisterAdminControllers(e *gin.Engine, uc usecase.HierarchyCRUD) {
-	hc := admin.NewHierarchyAdminController(uc)
+func RegisterAdminControllers(e *gin.Engine, uc usecase.HierarchyCRUD, userUseCase usecase.UserUseCase, auth *middleware.AuthHandler) {
+	hc := admin.NewHierarchyAdminController(uc, userUseCase)
 	e.POST("dast/hierarchy", hc.Create)
 	e.GET("dast/hierarchy/:id", hc.Get)
+	e.GET("dast/:username/hierarchies", auth.ValidateUsername(), hc.SearchByUsername)
 
 	c := admin.NewCriteriaAdminController(uc)
-	e.PUT("dast/hierarchy/:id/criteria", c.Fill)
-	e.POST("dast/criteria/template", c.SaveTemplate)
+	e.PUT("dast/hierarchy/:id/criteria", auth.ValidateToken(), c.Fill)
+	e.POST("dast/criteria/template", auth.IsAdmin(), c.SaveTemplate)
 	e.GET("dast/criteria/template/search", c.SearchPublicTemplates)
 }
 
-func RegisterPairwiseControllers(e *gin.Engine, uc usecase.PairwiseComparison) {
+func RegisterPairwiseControllers(e *gin.Engine, uc usecase.PairwiseComparison, auth *middleware.AuthHandler) {
 	pwise := pairwise.NewPairwiseController(uc)
-	e.POST("dast/pairwise/:id/generate", pwise.GenerateCriteriaMatrices)
+	e.POST("dast/pairwise/:id/generate", auth.ValidateToken(), pwise.GenerateCriteriaMatrices)
 	e.GET("dast/pairwise/:id/judgements/:judgements_id", pwise.GetJudgements)
-	e.PUT("dast/pairwise/:id/judgements/:judgements_id", pwise.SetJudgements)
-	e.POST("dast/pairwise/:id/judgements/:judgements_id/resolve", pwise.GenerateResults)
+	e.PUT("dast/pairwise/:id/judgements/:judgements_id", auth.ValidateToken(), pwise.SetJudgements)
+	e.POST("dast/pairwise/:id/judgements/:judgements_id/resolve", auth.ValidateToken(), pwise.GenerateResults)
 }

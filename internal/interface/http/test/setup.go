@@ -22,9 +22,15 @@ func SetupNetworkControllers() *gin.Engine {
 
 	hRepo := memory.NewHierarchyRepository()
 	pRepo := memory.NewCriteriaJudgementsRepository()
+	tRepo := memory.NewTokenRepository()
+	uRepo := memory.NewUserRepository()
+	templateRepo := memory.NewTemplateRepository()
 
-	hCrudUC := usecase.NewHierarchyCRUD(hRepo, service.NewCriteriaService(hRepo))
-	hc := admin.NewHierarchyAdminController(hCrudUC)
+	userUseCase := usecase.NewUserUseCase(uRepo, tRepo)
+	userController := user.NewUserController(userUseCase)
+	hCrudUC := usecase.NewHierarchyCRUD(hRepo, templateRepo, service.NewCriteriaService(hRepo))
+
+	hc := admin.NewHierarchyAdminController(hCrudUC, userUseCase)
 	router.POST("/hierarchy", hc.Create)
 	router.GET("/hierarchy/:id", hc.Get)
 
@@ -36,10 +42,6 @@ func SetupNetworkControllers() *gin.Engine {
 	router.PUT("/pairwise/:id/judgements/:judgements_id", pwise.SetJudgements)
 	router.POST("/pairwise/:id/judgements/:judgements_id/resolve", pwise.GenerateResults)
 
-	tRepo := memory.NewTokenRepository()
-	uRepo := memory.NewUserRepository()
-	userUseCase := usecase.NewUserUseCase(uRepo, tRepo)
-	userController := user.NewUserController(userUseCase)
 	router.POST("/user/login", userController.LogIn)
 	router.POST("/user/create", userController.Create)
 	router.GET("/user/:id", userController.Get)

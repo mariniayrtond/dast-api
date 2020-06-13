@@ -35,3 +35,17 @@ func (hr HierarchyRepository) Get(id string) (*model.Hierarchy, error) {
 	}
 	return h, nil
 }
+
+func (hr HierarchyRepository) SearchByUsername(username string) ([]*model.Hierarchy, error) {
+	hr.mu.Lock()
+	defer hr.mu.Unlock()
+
+	toRet := []*model.Hierarchy{}
+	for _, h := range hr.durable {
+		if h.Owner == username {
+			toRet = append(toRet, h)
+		}
+	}
+
+	return toRet, nil
+}

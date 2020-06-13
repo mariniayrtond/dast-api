@@ -3,10 +3,11 @@ package presenter
 import "dast-api/internal/domain/model"
 
 type CriteriaTemplate struct {
-	ID       string `json:"id"`
-	Owner    string `json:"owner"`
-	Public   bool   `json:"public"`
-	Criteria []struct {
+	ID          string `json:"id"`
+	Owner       string `json:"owner"`
+	Description string `json:"description"`
+	Public      bool   `json:"public"`
+	Criteria    []struct {
 		Level       int    `json:"level"`
 		ID          string `json:"id"`
 		Description string `json:"description"`
@@ -24,9 +25,10 @@ func RenderCriteriaTemplates(templates []*model.CriteriaTemplate) []CriteriaTemp
 
 func RenderCriteriaTemplate(t *model.CriteriaTemplate) CriteriaTemplate {
 	res := CriteriaTemplate{
-		ID:     t.ID,
-		Public: t.Public,
-		Owner:  t.Owner,
+		ID:          t.ID,
+		Public:      t.Public,
+		Owner:       t.Owner,
+		Description: t.Description,
 		Criteria: []struct {
 			Level       int    `json:"level"`
 			ID          string `json:"id"`

@@ -33,11 +33,16 @@ type userCRUDImpl struct {
 
 func (u userCRUDImpl) AlreadyLogIn(username string, token string) error {
 	t, err := u.tokenRepo.Get(token)
+	if t == nil || err != nil {
+		return errors.New("unauthorized")
+	}
+
+	user, err := u.uRepo.Get(t.ID)
 	if err != nil {
 		return errors.New("unauthorized")
 	}
 
-	if t.ID != username {
+	if user.Name != username {
 		return errors.New("unauthorized")
 	}
 
@@ -48,6 +53,10 @@ func (u userCRUDImpl) LogIn(name string, password string) (string, error) {
 	user, err := u.uRepo.SearchByName(name)
 	if err != nil {
 		return "", err
+	}
+
+	if user == nil {
+		return "", fmt.Errorf("user %s does not exists, you have to create it before login", name)
 	}
 
 	if errHashing := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); errHashing != nil {

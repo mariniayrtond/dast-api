@@ -18,13 +18,14 @@ type criteria struct {
 	ID          string `json:"id"`
 	Level       int    `json:"level"`
 	Description string `json:"description"`
-	ParentID    string `json:"parent_id"`
+	Parent      string `json:"parent"`
 }
 
 type template struct {
-	Owner    string          `json:"owner" binding:"required"`
-	Public   bool            `json:"public" binding:"required"`
-	Criteria criteriaRequest `json:"criteria" binding:"required"`
+	Owner       string          `json:"owner" binding:"required"`
+	Description string          `json:"description" binding:"required"`
+	Public      bool            `json:"public" binding:"required"`
+	Criteria    criteriaRequest `json:"criteria" binding:"required"`
 }
 
 func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
@@ -51,7 +52,7 @@ func (m *criteriaRequest) UnmarshalJSON(b []byte) error {
 		if c.Level < 0 {
 			return errors.New(fmt.Sprintf("criteria on index:%d. level must be > 0", i+1))
 		}
-		if c.ParentID == "" && c.Level > 0 {
+		if c.Parent == "" && c.Level > 0 {
 			return errors.New(fmt.Sprintf("criteria on index:%d has level > 0 but parent empty", i+1))
 		}
 	}
@@ -78,7 +79,7 @@ func (m criteriaRequest) ToCriteriaModel() []model.Criteria {
 			Level:  c.Level,
 			ID:     c.ID,
 			Name:   c.Description,
-			Parent: c.ParentID,
+			Parent: c.Parent,
 			Score: model.Score{
 				Local:  0,
 				Global: 0,
@@ -119,7 +120,7 @@ func (cac criteriaAdminController) SaveTemplate(c *gin.Context) {
 		return
 	}
 
-	template, err := cac.useCase.SaveCriteriaTemplate(input.Owner, input.Public, input.Criteria.ToCriteriaModel())
+	template, err := cac.useCase.SaveCriteriaTemplate(input.Owner, input.Description, input.Public, input.Criteria.ToCriteriaModel())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_saving_template", err))
 		return
