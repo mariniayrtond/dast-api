@@ -24,7 +24,6 @@ type criteria struct {
 type template struct {
 	Owner       string          `json:"owner" binding:"required"`
 	Description string          `json:"description" binding:"required"`
-	Public      bool            `json:"public" binding:"required"`
 	Criteria    criteriaRequest `json:"criteria" binding:"required"`
 }
 
@@ -104,7 +103,8 @@ func (cac criteriaAdminController) Fill(c *gin.Context) {
 		return
 	}
 
-	h, err := cac.useCase.SetCriteria(c.Param("id"), input.ToCriteriaModel())
+	context, _ := c.Get(c.Param("id"))
+	h, err := cac.useCase.SetCriteria(context.(*model.Hierarchy), input.ToCriteriaModel())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_adding_criteria", err))
 		return
@@ -120,7 +120,7 @@ func (cac criteriaAdminController) SaveTemplate(c *gin.Context) {
 		return
 	}
 
-	template, err := cac.useCase.SaveCriteriaTemplate(input.Owner, input.Description, input.Public, input.Criteria.ToCriteriaModel())
+	template, err := cac.useCase.SaveCriteriaTemplate(input.Owner, input.Description, input.Criteria.ToCriteriaModel())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_saving_template", err))
 		return

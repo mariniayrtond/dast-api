@@ -5,14 +5,13 @@ import (
 	"dast-api/internal/domain/repository"
 	"dast-api/internal/domain/service"
 	"dast-api/pkg/uid"
-	"fmt"
 )
 
 type HierarchyCRUD interface {
 	RegisterHierarchy(string, string, string, []string, string) (*model.Hierarchy, error)
 	GetHierarchy(id string) (*model.Hierarchy, error)
-	SetCriteria(id string, input []model.Criteria) (*model.Hierarchy, error)
-	SaveCriteriaTemplate(owner string, description string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error)
+	SetCriteria(hierarchy *model.Hierarchy, input []model.Criteria) (*model.Hierarchy, error)
+	SaveCriteriaTemplate(owner string, description string, criteria []model.Criteria) (*model.CriteriaTemplate, error)
 	SearchPublicTemplates() ([]*model.CriteriaTemplate, error)
 	SearchByUsername(username string) ([]*model.Hierarchy, error)
 }
@@ -31,12 +30,12 @@ type hierarchyCRUDImpl struct {
 	service       *service.CriteriaService
 }
 
-func (hCRUD hierarchyCRUDImpl) SaveCriteriaTemplate(owner string, description string, public bool, criteria []model.Criteria) (*model.CriteriaTemplate, error) {
+func (hCRUD hierarchyCRUDImpl) SaveCriteriaTemplate(owner string, description string, criteria []model.Criteria) (*model.CriteriaTemplate, error) {
 	id, err := uid.GenerateUUID()
 	if err != nil {
 		return nil, err
 	}
-	template := model.NewCriteriaTemplate(id, description, owner, public, criteria)
+	template := model.NewCriteriaTemplate(id, description, owner, criteria)
 	errInsert := hCRUD.templatesRepo.Save(template)
 	return template, errInsert
 }
@@ -61,18 +60,9 @@ func (hCRUD hierarchyCRUDImpl) GetHierarchy(id string) (*model.Hierarchy, error)
 	return hCRUD.repo.Get(id)
 }
 
-func (hCRUD hierarchyCRUDImpl) SetCriteria(id string, input []model.Criteria) (*model.Hierarchy, error) {
-	h, err := hCRUD.repo.Get(id)
-	if err != nil {
-		return nil, err
-	}
-
-	if h == nil {
-		return nil, fmt.Errorf("the hierarchy %s must be created before set criteria", id)
-	}
-
+func (hCRUD hierarchyCRUDImpl) SetCriteria(h *model.Hierarchy, input []model.Criteria) (*model.Hierarchy, error) {
 	h.Criteria = input
-	return h, hCRUD.repo.Save(h)
+	return h, hCRUD.repo.Override(h.ID, h)
 }
 
 func (hCRUD hierarchyCRUDImpl) SearchByUsername(username string) ([]*model.Hierarchy, error) {

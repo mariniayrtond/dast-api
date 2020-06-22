@@ -31,9 +31,7 @@ func (t TemplateRepository) SearchPublicTemplates() ([]*model.CriteriaTemplate, 
 
 	toRet := []*model.CriteriaTemplate{}
 	for _, template := range t.durable {
-		if template.Public {
-			toRet = append(toRet, template)
-		}
+		toRet = append(toRet, template)
 	}
 	return toRet, nil
 }

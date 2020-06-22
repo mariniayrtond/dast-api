@@ -37,7 +37,7 @@ func (u userCRUDImpl) AlreadyLogIn(username string, token string) error {
 		return errors.New("unauthorized")
 	}
 
-	user, err := u.uRepo.Get(t.ID)
+	user, err := u.uRepo.Get(t.UserID)
 	if err != nil {
 		return errors.New("unauthorized")
 	}

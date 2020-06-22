@@ -17,6 +17,14 @@ type HierarchyRepository struct {
 	durable map[string]*model.Hierarchy
 }
 
+func (hr HierarchyRepository) Override(id string, hierarchy *model.Hierarchy) error {
+	hr.mu.Lock()
+	defer hr.mu.Unlock()
+
+	hr.durable[id] = hierarchy
+	return nil
+}
+
 func (hr HierarchyRepository) Save(hierarchy *model.Hierarchy) error {
 	hr.mu.Lock()
 	defer hr.mu.Unlock()

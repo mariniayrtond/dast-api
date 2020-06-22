@@ -4,6 +4,7 @@ import (
 	"dast-api/internal/domain/model"
 	"dast-api/internal/interface/http/presenter"
 	"dast-api/internal/usecase"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -44,23 +45,30 @@ func (a AuthHandler) ValidateToken() gin.HandlerFunc {
 				return
 			}
 		}
+
+		c.Set(h.ID, h)
 	}
 }
 
 func (a AuthHandler) ValidateUsername() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		owner := c.Param("username")
-		token := c.GetHeader("X-Auth-Token")
-		if token == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.NewUnauthorized(owner))
+		if owner == "guest" {
+			c.AbortWithStatusJSON(http.StatusBadGateway, presenter.NewBadRequest("guest_hierarchies", errors.New("you cannot obtain guest hierarchies")))
 			return
 		}
 
-		err := a.userUseCase.AlreadyLogIn(c.Param("username"), token)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.NewUnauthorized(owner))
-			return
-		}
+		//token := c.GetHeader("X-Auth-Token")
+		//if token == "" {
+		//	c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.NewUnauthorized(owner))
+		//	return
+		//}
+		//
+		//err := a.userUseCase.AlreadyLogIn(c.Param("username"), token)
+		//if err != nil {
+		//	c.AbortWithStatusJSON(http.StatusUnauthorized, presenter.NewUnauthorized(owner))
+		//	return
+		//}
 	}
 }
 
