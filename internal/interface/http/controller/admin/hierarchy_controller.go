@@ -17,6 +17,18 @@ type hierarchyRequest struct {
 	Alternatives []string `json:"alternatives" binding:"required"`
 }
 
+func (h hierarchyRequest) hasDuplicateAlternatives() bool {
+	for i, alternative := range h.Alternatives {
+		for j := i + 1; j < len(h.Alternatives); j++ {
+			if alternative == h.Alternatives[j] {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func NewHierarchyAdminController(uc usecase.HierarchyCRUD, userUc usecase.UserUseCase) *hierarchyAdminController {
 	return &hierarchyAdminController{useCase: uc, userUseCase: userUc}
 }
@@ -35,6 +47,11 @@ func (hac hierarchyAdminController) Create(c *gin.Context) {
 
 	if len(input.Alternatives) < 2 {
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_alternatives", errors.New("the size of alternatives must be > 1")))
+		return
+	}
+
+	if input.hasDuplicateAlternatives() {
+		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_alternatives", errors.New("it's not possible set duplicated alternatives")))
 		return
 	}
 
