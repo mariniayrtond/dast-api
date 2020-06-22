@@ -68,6 +68,15 @@ func (u userCRUDImpl) LogIn(name string, password string) (string, error) {
 
 	tokenLogIn := model.NewLogIn(user.ID, fmt.Sprintf("%x", h.Sum(nil)))
 
+	possibleToken, err := u.tokenRepo.Get(tokenLogIn.Token)
+	if err != nil {
+		return "", errors.New("user/password don't exist or is not matching")
+	}
+
+	if possibleToken != nil {
+		return possibleToken.Token, nil
+	}
+
 	if err := u.tokenRepo.Create(tokenLogIn, config.TTLForToken); err != nil {
 		return "", errors.New(fmt.Sprintf("error generating token for user:%s", name))
 	}

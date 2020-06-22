@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"dast-api/internal/domain/model"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -19,6 +20,13 @@ func parseToMongoLogIn(l *model.LogIn) mongoLogIn {
 		UserID:    l.UserID,
 		Token:     l.Token,
 		CreatedAt: primitive.NewDateTimeFromTime(time.Now()),
+	}
+}
+
+func parseMongoMapToNativeLogIn(mc mongoLogIn) *model.LogIn {
+	return &model.LogIn{
+		UserID: mc.UserID,
+		Token:  mc.Token,
 	}
 }
 
@@ -43,5 +51,22 @@ func (t TokenRepository) Create(token *model.LogIn, ttl time.Duration) error {
 }
 
 func (t TokenRepository) Get(token string) (*model.LogIn, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filterCursor, err := t.collection.Find(ctx, bson.M{"token": token})
+	if err != nil {
+		return nil, err
+	}
+
+	var episodesFiltered []mongoLogIn
+	if err = filterCursor.All(ctx, &episodesFiltered); err != nil {
+		return nil, err
+	}
+
+	if episodesFiltered == nil {
+		return nil, nil
+	}
+
+	return parseMongoMapToNativeLogIn(episodesFiltered[0]), nil
 }
