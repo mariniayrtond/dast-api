@@ -9,10 +9,10 @@ import (
 )
 
 type PairwiseComparison interface {
-	GenerateMatrices(id string) (*model.CriteriaJudgements, error)
+	GenerateMatrices(hierarchy *model.Hierarchy) (*model.CriteriaJudgements, error)
 	GetJudgements(idHierarchy string, idJudgements string) (*model.CriteriaJudgements, error)
 	UpdateJudgements(idHierarchy string, idJudgements string, judgements *model.CriteriaJudgements) (*model.CriteriaJudgements, error)
-	GenerateResults(idHierarchy string, idJudgements string) (*model.CriteriaJudgements, error)
+	GenerateResults(hierarchy *model.Hierarchy, idJudgements string) (*model.CriteriaJudgements, error)
 }
 
 func NewPairwiseComparisonUC(hRepo repository.HierarchyRepository, pRepo repository.CriteriaJudgementsRepository, service *service.PairwiseService) PairwiseComparison {
@@ -29,7 +29,7 @@ type pairwiseComparisonImpl struct {
 	service *service.PairwiseService
 }
 
-func (p pairwiseComparisonImpl) GenerateResults(idHierarchy string, idJudgements string) (*model.CriteriaJudgements, error) {
+func (p pairwiseComparisonImpl) GenerateResults(h *model.Hierarchy, idJudgements string) (*model.CriteriaJudgements, error) {
 	j, err := p.pRepo.Get(idJudgements)
 	if err != nil {
 		return nil, err
@@ -39,17 +39,8 @@ func (p pairwiseComparisonImpl) GenerateResults(idHierarchy string, idJudgements
 		return nil, fmt.Errorf("judgements:%s not found", idJudgements)
 	}
 
-	if j.HierarchyID != idHierarchy {
-		return nil, fmt.Errorf("judgements_id:%s does not belong to the hierarchy:%s", idHierarchy, idJudgements)
-	}
-
-	h, err := p.hRepo.Get(idHierarchy)
-	if err != nil {
-		return nil, err
-	}
-
-	if h == nil {
-		return nil, fmt.Errorf("hierarchy:%s not found", idHierarchy)
+	if j.HierarchyID != h.ID {
+		return nil, fmt.Errorf("judgements_id:%s does not belong to the hierarchy:%s", h.ID, idJudgements)
 	}
 
 	tree := model.NewCriteriaHierarchy(h.Description, h.Criteria)
@@ -59,6 +50,10 @@ func (p pairwiseComparisonImpl) GenerateResults(idHierarchy string, idJudgements
 	}
 
 	if err := j.GenerateResults(&tree, h.Alternatives); err != nil {
+		return nil, err
+	}
+
+	if err := p.pRepo.Override(j.ID, j); err != nil {
 		return nil, err
 	}
 
@@ -104,23 +99,14 @@ func (p pairwiseComparisonImpl) UpdateJudgements(idHierarchy string, idJudgments
 	judgements.ID = j.ID
 	judgements.Results = j.Results
 
-	if err := p.pRepo.Save(judgements); err != nil {
+	if err := p.pRepo.Override(j.ID, judgements); err != nil {
 		return nil, err
 	}
 
 	return judgements, nil
 }
 
-func (p pairwiseComparisonImpl) GenerateMatrices(id string) (*model.CriteriaJudgements, error) {
-	h, err := p.hRepo.Get(id)
-	if err != nil {
-		return nil, err
-	}
-
-	if h == nil {
-		return nil, fmt.Errorf("hierarchy:%s not found", id)
-	}
-
+func (p pairwiseComparisonImpl) GenerateMatrices(h *model.Hierarchy) (*model.CriteriaJudgements, error) {
 	tree := model.NewCriteriaHierarchy(h.Description, h.Criteria)
 
 	jID, err := uid.GenerateUUID()
@@ -128,7 +114,7 @@ func (p pairwiseComparisonImpl) GenerateMatrices(id string) (*model.CriteriaJudg
 		return nil, err
 	}
 
-	judgments := model.NewCriteriaJudgements(jID, id, p.service.GenerateCriteriaMatrices(&tree), p.service.GenerateAlternativeMatrices(&tree, h.Alternatives))
+	judgments := model.NewCriteriaJudgements(jID, h.ID, p.service.GenerateCriteriaMatrices(&tree), p.service.GenerateAlternativeMatrices(&tree, h.Alternatives))
 	if err := p.pRepo.Save(judgments); err != nil {
 		return nil, err
 	}

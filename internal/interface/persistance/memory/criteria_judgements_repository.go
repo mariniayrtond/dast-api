@@ -17,6 +17,14 @@ type CriteriaJudgementsRepository struct {
 	durable map[string]*model.CriteriaJudgements
 }
 
+func (hr CriteriaJudgementsRepository) Override(id string, judgements *model.CriteriaJudgements) error {
+	hr.mu.Lock()
+	defer hr.mu.Unlock()
+
+	hr.durable[id] = judgements
+	return nil
+}
+
 func (hr CriteriaJudgementsRepository) Save(pWise *model.CriteriaJudgements) error {
 	hr.mu.Lock()
 	defer hr.mu.Unlock()

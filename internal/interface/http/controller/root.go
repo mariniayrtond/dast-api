@@ -27,9 +27,9 @@ func RegisterUserControllers(e *gin.Engine, uc usecase.UserUseCase) {
 
 func RegisterAdminControllers(e *gin.Engine, uc usecase.HierarchyCRUD, userUseCase usecase.UserUseCase, auth *middleware.AuthHandler) {
 	hc := admin.NewHierarchyAdminController(uc, userUseCase)
+	e.GET("dast/hierarchies/:username/search", auth.ValidateUsername(), hc.SearchByUsername)
 	e.POST("dast/hierarchy", hc.Create)
 	e.GET("dast/hierarchy/:id", hc.Get)
-	e.GET("dast/:username/hierarchies", auth.ValidateUsername(), hc.SearchByUsername)
 
 	c := admin.NewCriteriaAdminController(uc)
 	e.PUT("dast/hierarchy/:id/criteria", auth.ValidateToken(), c.Fill)

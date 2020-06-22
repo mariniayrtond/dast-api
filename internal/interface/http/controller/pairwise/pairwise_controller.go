@@ -61,7 +61,8 @@ type pairwiseController struct {
 }
 
 func (p pairwiseController) GenerateCriteriaMatrices(c *gin.Context) {
-	judgements, err := p.useCase.GenerateMatrices(c.Param("id"))
+	context, _ := c.Get(c.Param("id"))
+	judgements, err := p.useCase.GenerateMatrices(context.(*model.Hierarchy))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_generating_criteria_matrices", err))
 	}
@@ -69,7 +70,6 @@ func (p pairwiseController) GenerateCriteriaMatrices(c *gin.Context) {
 }
 
 func (p pairwiseController) GetJudgements(c *gin.Context) {
-
 	j, err := p.useCase.GetJudgements(c.Param("id"), c.Param("judgements_id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_getting_judgements", err))
@@ -96,7 +96,8 @@ func (p pairwiseController) SetJudgements(c *gin.Context) {
 }
 
 func (p pairwiseController) GenerateResults(c *gin.Context) {
-	judgements, err := p.useCase.GenerateResults(c.Param("id"), c.Param("judgements_id"))
+	context, _ := c.Get(c.Param("id"))
+	judgements, err := p.useCase.GenerateResults(context.(*model.Hierarchy), c.Param("judgements_id"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_generating_criteria_matrices", err))
 	}

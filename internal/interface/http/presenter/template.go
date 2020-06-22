@@ -26,7 +26,6 @@ func RenderCriteriaTemplates(templates []*model.CriteriaTemplate) []CriteriaTemp
 func RenderCriteriaTemplate(t *model.CriteriaTemplate) CriteriaTemplate {
 	res := CriteriaTemplate{
 		ID:          t.ID,
-		Public:      t.Public,
 		Owner:       t.Owner,
 		Description: t.Description,
 		Criteria: []struct {

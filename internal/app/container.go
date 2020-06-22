@@ -1,24 +1,49 @@
 package app
 
 import (
+	"context"
+	"dast-api/internal/config"
 	"dast-api/internal/domain/service"
-	"dast-api/internal/interface/persistance/memory"
+	"dast-api/internal/interface/persistance/mongodb"
 	"dast-api/internal/usecase"
+	"fmt"
 	"github.com/sarulabs/di"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"time"
 )
 
 type Container struct {
 	ctn di.Container
 }
 
-var hRepo *memory.HierarchyRepository
-var pRepo *memory.CriteriaJudgementsRepository
-var tRepo *memory.TemplateRepository
+var hRepo *mongodb.HierarchyRepository
+var uRepo *mongodb.UserRepository
+var pRepo *mongodb.CriteriaJudgementsRepository
+var tRepo *mongodb.TemplateRepository
+var tokenRepo *mongodb.TokenRepository
 
 func NewContainer() (*Container, error) {
-	hRepo = memory.NewHierarchyRepository()
-	pRepo = memory.NewCriteriaJudgementsRepository()
-	tRepo = memory.NewTemplateRepository()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
+		fmt.Sprintf("mongodb+srv://admin:%s@dastapi-mweuk.gcp.mongodb.net/%s?retryWrites=true&w=majority", config.MongoDBPass, config.MongoDBName),
+	))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if errPing := client.Ping(ctx, readpref.Primary()); errPing != nil {
+		return nil, errPing
+	}
+
+	hRepo = mongodb.NewHierarchyRepository(client.Database(config.MongoDBName).Collection(config.MongoTableHierarchies))
+	uRepo = mongodb.NewUserRepository(client.Database(config.MongoDBName).Collection(config.MongoTableUsers))
+	pRepo = mongodb.NewCriteriaJudgementsRepository(client.Database(config.MongoDBName).Collection(config.MongoTableJudgements))
+	tRepo = mongodb.NewTemplateRepository(client.Database(config.MongoDBName).Collection(config.MongoTableTemplates))
+	tokenRepo = mongodb.NewTokenRepository(client.Database(config.MongoDBName).Collection(config.MongoTableTokens))
 
 	builder, err := di.NewBuilder()
 	if err != nil {
@@ -56,15 +81,15 @@ func (c *Container) Clean() error {
 }
 
 func buildHierarchyUsecase(ctn di.Container) (interface{}, error) {
-	service := service.NewCriteriaService(hRepo)
-	return usecase.NewHierarchyCRUD(hRepo, tRepo, service), nil
+	criteriaService := service.NewCriteriaService(hRepo)
+	return usecase.NewHierarchyCRUD(hRepo, tRepo, criteriaService), nil
 }
 
 func buildPairwiseUsecase(ctn di.Container) (interface{}, error) {
-	service := service.NewPairwiseService()
-	return usecase.NewPairwiseComparisonUC(hRepo, pRepo, service), nil
+	pairwiseService := service.NewPairwiseService()
+	return usecase.NewPairwiseComparisonUC(hRepo, pRepo, pairwiseService), nil
 }
 
 func buildUserUsecase(ctn di.Container) (interface{}, error) {
-	return usecase.NewUserUseCase(memory.NewUserRepository(), memory.NewTokenRepository()), nil
+	return usecase.NewUserUseCase(uRepo, tokenRepo), nil
 }
