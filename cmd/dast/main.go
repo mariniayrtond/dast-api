@@ -5,10 +5,13 @@ import (
 	"dast-api/internal/interface/http"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	"log"
 )
 
 func main() {
+	logger.SetLevel(logger.InfoLevel)
+	logger.SetFormatter(&logger.JSONFormatter{})
 	ctn, err := app.NewContainer()
 	if err != nil {
 		log.Fatalf("failed to build container: %v", err)
