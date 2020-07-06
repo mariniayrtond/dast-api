@@ -4,6 +4,7 @@ import (
 	"dast-api/internal/interface/http/presenter"
 	"dast-api/internal/usecase"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -34,16 +35,19 @@ func NewUserController(useCase usecase.UserUseCase) *userController {
 func (hac userController) Create(c *gin.Context) {
 	var input userRequest
 	if err := c.BindJSON(&input); err != nil {
+		logger.Error("error parsing user create request", err)
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_user_request", err))
 		return
 	}
 
 	res, err := hac.useCase.RegisterUser(input.Name, input.Email, input.Password)
 	if err != nil {
+		logger.Error("error creating user", err)
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_saving_user", err))
 		return
 	}
 
+	logger.Infof("user:%s created successfully", input.Name)
 	c.JSON(http.StatusCreated, presenter.RenderUser(res))
 }
 
