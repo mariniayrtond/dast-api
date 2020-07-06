@@ -5,6 +5,7 @@ import (
 	"dast-api/internal/interface/http/presenter"
 	"dast-api/internal/usecase"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -29,7 +30,7 @@ func (j judgementsRequest) ToJudgementsModel() *model.CriteriaJudgements {
 
 	for _, criteriaComparison := range j.CriteriaComparison {
 		ret.CriteriaComparison = append(ret.CriteriaComparison, model.CriteriaPairwiseComparison{
-			Level:         criteriaComparison.Level,
+			Level: criteriaComparison.Level,
 			MatrixContext: model.MatrixContext{
 				ComparedTo: criteriaComparison.MatrixContext.ComparedTo,
 				Elements:   criteriaComparison.MatrixContext.Elements,
@@ -64,14 +65,19 @@ func (p pairwiseController) GenerateCriteriaMatrices(c *gin.Context) {
 	context, _ := c.Get(c.Param("id"))
 	judgements, err := p.useCase.GenerateMatrices(context.(*model.Hierarchy))
 	if err != nil {
+		logger.Errorf("error at matrix generation for hierarchy:%s", err, c.Param("id"))
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_generating_criteria_matrices", err))
+		return
 	}
+
+	logger.Infof("matrices generated for hierarchy:%s", c.Param("id"))
 	c.JSON(http.StatusCreated, presenter.RenderCriteriaJudgements(judgements))
 }
 
 func (p pairwiseController) GetJudgements(c *gin.Context) {
 	j, err := p.useCase.GetJudgements(c.Param("id"), c.Param("judgements_id"))
 	if err != nil {
+		logger.Errorf("error getting judgements", err, c.Param("id"))
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_getting_judgements", err))
 		return
 	}
@@ -82,16 +88,19 @@ func (p pairwiseController) GetJudgements(c *gin.Context) {
 func (p pairwiseController) SetJudgements(c *gin.Context) {
 	var input judgementsRequest
 	if err := c.BindJSON(&input); err != nil {
+		logger.Error("error setting judgements", err)
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_judgements", err))
 		return
 	}
 
 	j, err := p.useCase.UpdateJudgements(c.Param("id"), c.Param("judgements_id"), input.ToJudgementsModel())
 	if err != nil {
+		logger.Error("error setting judgements", err)
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_updating_judgements", err))
 		return
 	}
 
+	logger.Infof("judgements updated hierarchy:%s - judgements:%s", c.Param("id"), c.Param("judgements_id"))
 	c.JSON(http.StatusOK, presenter.RenderCriteriaJudgements(j))
 }
 
@@ -99,7 +108,11 @@ func (p pairwiseController) GenerateResults(c *gin.Context) {
 	context, _ := c.Get(c.Param("id"))
 	judgements, err := p.useCase.GenerateResults(context.(*model.Hierarchy), c.Param("judgements_id"))
 	if err != nil {
+		logger.Error("error generating judgements", err)
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_generating_criteria_matrices", err))
+		return
 	}
+
+	logger.Infof("results generated. hierarchy:%s - judgements:%s", c.Param("id"), c.Param("judgements_id"))
 	c.JSON(http.StatusOK, presenter.RenderCriteriaJudgements(judgements))
 }

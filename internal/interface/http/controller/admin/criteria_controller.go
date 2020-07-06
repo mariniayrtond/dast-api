@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	logger "github.com/sirupsen/logrus"
 	"net/http"
 	"strings"
 )
@@ -99,6 +100,7 @@ type criteriaAdminController struct {
 func (cac criteriaAdminController) Fill(c *gin.Context) {
 	var input criteriaRequest
 	if err := c.BindJSON(&input); err != nil {
+		logger.Errorf("error filling hierarchy", err)
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_criteria_request", err))
 		return
 	}
@@ -106,10 +108,12 @@ func (cac criteriaAdminController) Fill(c *gin.Context) {
 	context, _ := c.Get(c.Param("id"))
 	h, err := cac.useCase.SetCriteria(context.(*model.Hierarchy), input.ToCriteriaModel())
 	if err != nil {
+		logger.Errorf("error getting hierarchy:%s", err, c.Param("id"))
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_adding_criteria", err))
 		return
 	}
 
+	logger.Infof("hierarchy:%s filled successfully", c.Param("id"))
 	c.JSON(http.StatusOK, presenter.RenderHierarchy(h))
 }
 

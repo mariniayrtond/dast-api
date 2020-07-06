@@ -54,22 +54,26 @@ func (hac userController) Create(c *gin.Context) {
 func (hac userController) LogIn(c *gin.Context) {
 	var input logInRequest
 	if err := c.BindJSON(&input); err != nil {
+		logger.Error("error trying to parse log in request", err)
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_log_in_request", err))
 		return
 	}
 
 	token, err := hac.useCase.LogIn(input.Name, input.Password)
 	if err != nil {
+		logger.Error("error creating login", err)
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_log_in", err))
 		return
 	}
 
+	logger.Infof("user:%s logged successfully", input.Name)
 	c.JSON(http.StatusCreated, presenter.RenderSuccessLogIn(input.Name, token))
 }
 
 func (hac userController) Get(c *gin.Context) {
 	res, err := hac.useCase.GetUser(c.Param("id"))
 	if err != nil {
+		logger.Error("error getting user", err)
 		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_getting_user", err))
 		return
 	}
@@ -83,6 +87,7 @@ func (hac userController) ValidateToken(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, presenter.NewBadRequest("error_parsing_token", err))
 		return
 	}
+
 	err := hac.useCase.AlreadyLogIn(input.ID, input.Token)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, presenter.NewUnauthorized(c.Param("id")))
