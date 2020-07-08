@@ -7,4 +7,5 @@ type CriteriaJudgementsRepository interface {
 	Override(id string, judgements *model.CriteriaJudgements) error
 	Save(judgements *model.CriteriaJudgements) error
 	Get(id string) (*model.CriteriaJudgements, error)
+	SearchByHierarchyId(id string) ([]*model.CriteriaJudgements, error)
 }

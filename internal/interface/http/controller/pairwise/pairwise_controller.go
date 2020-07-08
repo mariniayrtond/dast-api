@@ -85,6 +85,17 @@ func (p pairwiseController) GetJudgements(c *gin.Context) {
 	c.JSON(http.StatusOK, presenter.RenderCriteriaJudgements(j))
 }
 
+func (p pairwiseController) GetAllJudgementsByHierarchyID(c *gin.Context) {
+	jj, err := p.useCase.GetJudgementsByHierarchyId(c.Param("id"))
+	if err != nil {
+		logger.Errorf("error getting judgements by hierarchy id", err, c.Param("id"))
+		c.JSON(http.StatusInternalServerError, presenter.NewInternalServerError("error_getting_judgements", err))
+		return
+	}
+
+	c.JSON(http.StatusOK, presenter.RenderSomeCriteriaJudgements(jj))
+}
+
 func (p pairwiseController) SetJudgements(c *gin.Context) {
 	var input judgementsRequest
 	if err := c.BindJSON(&input); err != nil {

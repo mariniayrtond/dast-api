@@ -2,18 +2,46 @@ package model
 
 import (
 	"errors"
+	"time"
 )
 
 type CriteriaJudgements struct {
 	ID                    string
 	HierarchyID           string
+	Status                JudgementStatus
+	DateCreated           time.Time
+	DateLastUpdated       time.Time
 	CriteriaComparison    []CriteriaPairwiseComparison
 	AlternativeComparison []MatrixContext
 	Results               map[string]float64
 }
 
+type JudgementStatus string
+
+func (j JudgementStatus) ToString() string {
+	switch j {
+	case Complete:
+		return "Complete"
+	case Incomplete:
+		return "Incomplete"
+	}
+	return ""
+}
+
+const (
+	Complete   JudgementStatus = "Complete"
+	Incomplete                 = "Incomplete"
+)
+
 func NewCriteriaJudgements(ID string, hierarchyID string, criteriaPairwiseComparisons []CriteriaPairwiseComparison, alternativeComparison []MatrixContext) *CriteriaJudgements {
-	return &CriteriaJudgements{ID: ID, HierarchyID: hierarchyID, CriteriaComparison: criteriaPairwiseComparisons, AlternativeComparison: alternativeComparison}
+	return &CriteriaJudgements{
+		ID: ID, HierarchyID: hierarchyID,
+		CriteriaComparison:    criteriaPairwiseComparisons,
+		AlternativeComparison: alternativeComparison,
+		Status:                Incomplete,
+		DateCreated:           time.Now().UTC(),
+		DateLastUpdated:       time.Now().UTC(),
+	}
 }
 
 func (j *CriteriaJudgements) GenerateResults(tree *CriteriaRoot, alternatives []string) error {

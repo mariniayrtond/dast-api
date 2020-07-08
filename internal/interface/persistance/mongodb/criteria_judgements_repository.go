@@ -12,6 +12,9 @@ import (
 type mongoCriteriaJudgements struct {
 	ID                    primitive.ObjectID                `bson:"_id"`
 	HierarchyID           string                            `bson:"hierarchy_id"`
+	Status                string                            `bson:"status"`
+	DateCreated           primitive.DateTime                `bson:"date_created"`
+	DateLastUpdated       primitive.DateTime                `bson:"date_last_updated"`
 	CriteriaComparison    []mongoCriteriaPairwiseComparison `bson:"criteria_comparison"`
 	AlternativeComparison []mongoMatrixContext              `bson:"alternative_comparison"`
 	Results               map[string]float64                `bson:"results"`
@@ -21,6 +24,9 @@ func parseToMongoJudgement(j *model.CriteriaJudgements) mongoCriteriaJudgements 
 	toRet := mongoCriteriaJudgements{
 		ID:                    primitive.NewObjectID(),
 		HierarchyID:           j.HierarchyID,
+		Status:                j.Status.ToString(),
+		DateCreated:           primitive.NewDateTimeFromTime(j.DateCreated),
+		DateLastUpdated:       primitive.NewDateTimeFromTime(j.DateLastUpdated),
 		CriteriaComparison:    []mongoCriteriaPairwiseComparison{},
 		AlternativeComparison: []mongoMatrixContext{},
 		Results:               j.Results,
@@ -52,6 +58,9 @@ func parseMongoMapToNativeJudgement(j mongoCriteriaJudgements) *model.CriteriaJu
 	toRet := model.CriteriaJudgements{
 		ID:                    j.ID.Hex(),
 		HierarchyID:           j.HierarchyID,
+		Status:                model.JudgementStatus(j.Status),
+		DateCreated:           j.DateCreated.Time(),
+		DateLastUpdated:       j.DateLastUpdated.Time(),
 		CriteriaComparison:    []model.CriteriaPairwiseComparison{},
 		AlternativeComparison: []model.MatrixContext{},
 		Results:               j.Results,
@@ -77,6 +86,15 @@ func parseMongoMapToNativeJudgement(j mongoCriteriaJudgements) *model.CriteriaJu
 	}
 
 	return &toRet
+}
+
+func parseMongoMapToNativeJudgements(jj []mongoCriteriaJudgements) []*model.CriteriaJudgements {
+	var toRet = []*model.CriteriaJudgements{}
+	for _, j := range jj {
+		toRet = append(toRet, parseMongoMapToNativeJudgement(j))
+	}
+
+	return toRet
 }
 
 type mongoCriteriaPairwiseComparison struct {
@@ -148,4 +166,21 @@ func (hr CriteriaJudgementsRepository) Get(id string) (*model.CriteriaJudgements
 	}
 
 	return parseMongoMapToNativeJudgement(episodesFiltered[0]), nil
+}
+
+func (hr CriteriaJudgementsRepository) SearchByHierarchyId(id string) ([]*model.CriteriaJudgements, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filterCursor, err := hr.collection.Find(ctx, bson.M{"hierarchy_id": id})
+	if err != nil {
+		return nil, err
+	}
+
+	var episodesFiltered []mongoCriteriaJudgements
+	if err = filterCursor.All(ctx, &episodesFiltered); err != nil {
+		return nil, err
+	}
+
+	return parseMongoMapToNativeJudgements(episodesFiltered), nil
 }
