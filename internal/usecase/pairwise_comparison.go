@@ -6,11 +6,13 @@ import (
 	"dast-api/internal/domain/service"
 	"dast-api/pkg/uid"
 	"fmt"
+	"time"
 )
 
 type PairwiseComparison interface {
 	GenerateMatrices(hierarchy *model.Hierarchy) (*model.CriteriaJudgements, error)
 	GetJudgements(idHierarchy string, idJudgements string) (*model.CriteriaJudgements, error)
+	GetJudgementsByHierarchyId(idHierarchy string) ([]*model.CriteriaJudgements, error)
 	UpdateJudgements(idHierarchy string, idJudgements string, judgements *model.CriteriaJudgements) (*model.CriteriaJudgements, error)
 	GenerateResults(hierarchy *model.Hierarchy, idJudgements string) (*model.CriteriaJudgements, error)
 }
@@ -53,6 +55,8 @@ func (p pairwiseComparisonImpl) GenerateResults(h *model.Hierarchy, idJudgements
 		return nil, err
 	}
 
+	j.DateLastUpdated = time.Now().UTC()
+	j.Status = model.Complete
 	if err := p.pRepo.Override(j.ID, j); err != nil {
 		return nil, err
 	}
@@ -77,6 +81,15 @@ func (p pairwiseComparisonImpl) GetJudgements(idHierarchy string, idJudgments st
 	return j, nil
 }
 
+func (p pairwiseComparisonImpl) GetJudgementsByHierarchyId(idHierarchy string) ([]*model.CriteriaJudgements, error) {
+	jj, err := p.pRepo.SearchByHierarchyId(idHierarchy)
+	if err != nil {
+		return nil, err
+	}
+
+	return jj, nil
+}
+
 func (p pairwiseComparisonImpl) UpdateJudgements(idHierarchy string, idJudgments string, judgements *model.CriteriaJudgements) (*model.CriteriaJudgements, error) {
 	j, err := p.pRepo.Get(idJudgments)
 	if err != nil {
@@ -98,6 +111,9 @@ func (p pairwiseComparisonImpl) UpdateJudgements(idHierarchy string, idJudgments
 	judgements.HierarchyID = j.HierarchyID
 	judgements.ID = j.ID
 	judgements.Results = j.Results
+	judgements.DateLastUpdated = time.Now().UTC()
+	judgements.DateCreated = j.DateCreated
+	judgements.Status = j.Status
 
 	if err := p.pRepo.Override(j.ID, judgements); err != nil {
 		return nil, err

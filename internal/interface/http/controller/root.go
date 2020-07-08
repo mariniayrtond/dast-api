@@ -40,6 +40,7 @@ func RegisterAdminControllers(e *gin.Engine, uc usecase.HierarchyCRUD, userUseCa
 func RegisterPairwiseControllers(e *gin.Engine, uc usecase.PairwiseComparison, auth *middleware.AuthHandler) {
 	pwise := pairwise.NewPairwiseController(uc)
 	e.POST("dast/pairwise/:id/generate", auth.ValidateToken(), pwise.GenerateCriteriaMatrices)
+	e.GET("dast/pairwise/:id/search/judgements", auth.ValidateToken(), pwise.GetAllJudgementsByHierarchyID)
 	e.GET("dast/pairwise/:id/judgements/:judgements_id", pwise.GetJudgements)
 	e.PUT("dast/pairwise/:id/judgements/:judgements_id", auth.ValidateToken(), pwise.SetJudgements)
 	e.POST("dast/pairwise/:id/judgements/:judgements_id/resolve", auth.ValidateToken(), pwise.GenerateResults)
