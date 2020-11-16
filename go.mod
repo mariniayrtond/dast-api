@@ -12,5 +12,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	go.mongodb.org/mongo-driver v1.3.4
 	golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
+	golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd // indirect
 )

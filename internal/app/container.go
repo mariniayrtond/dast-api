@@ -11,6 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"golang.org/x/net/proxy"
+	"net"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -24,10 +28,33 @@ var pRepo *mongodb.CriteriaJudgementsRepository
 var tRepo *mongodb.TemplateRepository
 var tokenRepo *mongodb.TokenRepository
 
+type fixieSocks struct {
+	d proxy.Dialer
+}
+
+func (f fixieSocks) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
+	return f.d.Dial(network, address)
+}
+
 func NewContainer() (*Container, error) {
+	fixieData := strings.Split(os.Getenv("FIXIE_SOCKS_HOST"), "@")
+	fixieAddr := fixieData[1]
+	authData := strings.Split(fixieData[0], ":")
+	auth := proxy.Auth{
+		User:     authData[0],
+		Password: authData[1],
+	}
+
+	dialer, err := proxy.SOCKS5("tcp", fixieAddr, &auth, proxy.Direct)
+	if err != nil {
+		fmt.Println("can't connect to the proxy:", err)
+		return nil, err
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
+
+	client, err := mongo.Connect(ctx, options.Client().SetDialer(fixieSocks{d: dialer}).ApplyURI(
 		fmt.Sprintf("mongodb+srv://admin:%s@dastapi.mweuk.gcp.mongodb.net/%s?retryWrites=true&w=majority", config.MongoDBPass, config.MongoDBName),
 	))
 
