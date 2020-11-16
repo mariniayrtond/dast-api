@@ -28,7 +28,7 @@ func NewContainer() (*Container, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
-		fmt.Sprintf("mongodb+srv://admin:%s@dastapi-mweuk.gcp.mongodb.net/%s?retryWrites=true&w=majority", config.MongoDBPass, config.MongoDBName),
+		fmt.Sprintf("mongodb+srv://admin:%s@dastapi.mweuk.gcp.mongodb.net/%s?retryWrites=true&w=majority", config.MongoDBPass, config.MongoDBName),
 	))
 
 	if err != nil {
