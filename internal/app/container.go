@@ -6,7 +6,6 @@ import (
 	"dast-api/internal/domain/service"
 	"dast-api/internal/interface/persistance/mongodb"
 	"dast-api/internal/usecase"
-	"fmt"
 	"github.com/sarulabs/di"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,10 +27,8 @@ var tokenRepo *mongodb.TokenRepository
 func NewContainer() (*Container, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
-		fmt.Sprintf(os.Getenv("mongo"), config.MongoDBName),
-	))
 
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("mongo")))
 	if err != nil {
 		return nil, err
 	}
