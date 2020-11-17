@@ -26,14 +26,10 @@ var tRepo *mongodb.TemplateRepository
 var tokenRepo *mongodb.TokenRepository
 
 func NewContainer() (*Container, error) {
-	os.Setenv("HTTP_PROXY", os.Getenv("FIXIE_URL"))
-	os.Setenv("HTTPS_PROXY", os.Getenv("FIXIE_URL"))
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
-		fmt.Sprintf("mongodb+srv://admin:%s@dastapi.mweuk.gcp.mongodb.net/%s?retryWrites=true&w=majority", config.MongoDBPass, config.MongoDBName),
+		fmt.Sprintf(os.Getenv("mongo"), config.MongoDBName),
 	))
 
 	if err != nil {

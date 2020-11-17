@@ -3,10 +3,7 @@ package config
 import "time"
 
 const (
-	TTLForToken = 12 * time.Hour
-	// TODO: esto probablemente tenga que ser una struct
-	MongoDBUserName       = "amarini"
-	MongoDBPass           = "9W00BNdHyOpN97xv"
+	TTLForToken           = 12 * time.Hour
 	MongoDBName           = "dast"
 	MongoTableHierarchies = "hierarchies"
 	MongoTableJudgements  = "judgements"
