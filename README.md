@@ -1,32 +1,32 @@
 # DAST API
 
-- Basic Usage
-   - Guest Hierarchies
-   - Guest Judgements
-- Authenticated Features
-   - Users
-   - Token Auth
-   - Restrictions
-- HTTP Requests
-- HTTP Response Codes
-- Endpoints
+- [Basic Usage](#basic-usage)
+   - [Guest Hierarchies](#guest-hierarchies)
+   - [Guest Judgements](#guest-judgements)
+- [Authenticated Features](#authenticated-features)
+   - [Users](#users)
+   - [Token Auth](#token-auth)
+   - [Restrictions](#restrictions)
+- [HTTP Requests](#http-requests)
+- [HTTP Response Codes](#http-response-codes)
+- [Endpoints](#endpoints)
    - Hierarchy
-      - Create
-      - GET
-      - Search by Username
+      - [Create](#create-hierarchy)
+      - [GET](#get-hierarchy)
+      - [Search by Username](#search-user-hierarchies)
    - Criteria
-      - PUT
+      - [PUT](#criteria-put)
    - Pairwise Matrix
-      - Generate
+      - [Generate](#generate-pairwise-matrix)
    - Judgements
-      - GET
-      - Search
-      - Set
-      - Resolve
+      - [GET](#get-pairwise-matrix)
+      - [Search](#search-pairwise-matrix-by-hierarchy)
+      - [Set](#set-judgements)
+      - [Resolve](#resolve-pairwise-matrix)
    - Users
-      - Create
-      - Log In
-      - Validate Token
+      - [Create](#create-user)
+      - [Log In](#log-in-user)
+      - [Validate Token](#validate-token)
 
 ### Introduction
 
