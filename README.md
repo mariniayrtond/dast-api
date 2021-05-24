@@ -27,7 +27,6 @@
       - Create
       - Log In
       - Validate Token
-      - Get
 
 ### Introduction
 
@@ -2247,6 +2246,123 @@ X-auth-token | Y | If hierarchy owner user is not equal to `guest`, then the X-a
 }
 ```
 
+## Create User
+
+    POST dast/user/create
+
+Creates a [User](#user-object) object.
+
+### Parameters
+#### URI Parameters
+None
+
+#### Body Parameters
+Field | Required | Description
+--- | --- | ---
+name | Y | User name.
+email | Y | User valid email.
+password | Y | User password.
+
+### Example
+#### URL
+
+    POST https://dast-api.herokuapp.com/dast/user/create
+
+#### Request Body
+```json
+{
+   "name": "rand",
+   "email": "rand@gmail.com",
+   "password": "1234"
+}
+```
+
+#### Response
+
+`Status 201: Created`
+
+```json
+{
+    "id": "22j1isodjel2kssidjw23xjs",
+    "name": "rand",
+    "email": "rand@gmail.com"
+}
+```
+
+## Log In User
+
+    POST dast/user/login
+
+Log in a [User](#user-object) into DAST.
+
+### Parameters
+#### URI Parameters
+None
+
+#### Body Parameters
+Field | Required | Description
+--- | --- | ---
+name | Y | User name.
+password | Y | User password.
+
+### Example
+#### URL
+
+    POST https://dast-api.herokuapp.com/dast/user/login
+
+#### Request Body
+```json
+{
+   "name": "rand",
+   "password": "1234"
+}
+```
+
+#### Response
+
+`Status 200: OK`
+
+```json
+{
+   "message": "rand successful logged in",
+   "username": "rand",
+   "token": "SHA256 TOKEN"
+}
+```
+
+## Validate Token
+
+    POST dast/user/login
+
+Validate if a SHA256 token is valid.
+
+### Parameters
+#### URI Parameters
+None
+
+#### Body Parameters
+Field | Required | Description
+--- | --- | ---
+id | Y | Token username owner.
+token | Y | SHA256.
+
+### Example
+#### URL
+
+    POST https://dast-api.herokuapp.com/dast/user/validate
+
+#### Request Body
+```json
+{
+   "id": "rand",
+   "token": "SHA256 TOKEN"
+}
+```
+
+#### Response
+
+`Status 204: No Content`
+
 ## Objects
 
 ### Hierarchy Object
@@ -2303,4 +2419,12 @@ Field | Data Type | Read Only | Description
 compared_to | string | Y | Reference element with which the comparison is being made.
 elements | string array | Y | Items being compared.
 judgements | []float array | Y | Matrix values.
+
+### User Object
+
+Field | Data Type | Read Only | Description
+--- | --- | --- | ---
+name | string | Y | User name.
+password | string | Y | User encrypted password.
+email | string | Y | User email.
 
